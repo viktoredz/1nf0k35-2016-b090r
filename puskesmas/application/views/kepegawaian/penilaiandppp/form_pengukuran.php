@@ -182,42 +182,42 @@ if (($statusanakbuah == 'diasendiri') || ($statusanakbuah == 'atasan')) {
             ?>" ></div>
         </div>
         
-        <input type="hidden" class="form-control" name="id_pegawai_pengukuran" id="id_pegawai_pengukuran" placeholder="ID Pegawai" value="<?php 
+        <input type="text" class="form-control" name="id_pegawai_pengukuran" id="id_pegawai_pengukuran" placeholder="ID Pegawai" value="<?php 
         if(set_value('id_pegawai_pengukuran')=="" && isset($id_pegawai)){
             echo $id_pegawai;
           }else{
             echo  set_value('id_pegawai_pengukuran');
           }
         ?>">
-        <input type="hidden" class="form-control" name="nilairataskp_pengukuran" id="nilairataskp_pengukuran" placeholder="nilairataskp_pengukuran " value="<?php 
+        <input type="text" class="form-control" name="nilairataskp_pengukuran" id="nilairataskp_pengukuran" placeholder="nilairataskp_pengukuran " value="<?php 
         if(set_value('nilairataskp_pengukuran')=="" && isset($nilairataskp)){
             echo $nilairataskp;
           }else{
             echo  set_value('nilairataskp_pengukuran');
           }
         ?>">
-        <input type="hidden" class="form-control" name="id_pegawai_pengukuran_penilai" id="id_pegawai_pengukuran_penilai" placeholder="ID Penilai" value="<?php 
+        <input type="text" class="form-control" name="id_pegawai_pengukuran_penilai" id="id_pegawai_pengukuran_penilai" placeholder="ID Penilai" value="<?php 
             if(set_value('id_pegawai_pengukuran_penilai')=="" && isset($id_pegawai_penilai)){
                 echo $id_pegawai_penilai;
               }else{
                 echo  set_value('id_pegawai_pengukuran_penilai');
               }
             ?>">
-        <input type="hidden" class="form-control" name="id_pegawai_pengukuran_penilai_atasan" id="id_pegawai_pengukuran_penilai_atasan" placeholder="ID Penilai Atasan" value="<?php 
+        <input type="text" class="form-control" name="id_pegawai_pengukuran_penilai_atasan" id="id_pegawai_pengukuran_penilai_atasan" placeholder="ID Penilai Atasan" value="<?php 
             if(set_value('id_pegawai_pengukuran_penilai_atasan')=="" && isset($id_pegawai_penilai_atasan)){
                 echo $id_pegawai_penilai_atasan;
               }else{
                 echo  set_value('id_pegawai_pengukuran_penilai_atasan');
               }
             ?>">
-          <input type="hidden" class="form-control" name="username_pengukuran" id="username_pengukuran" placeholder="username_pengukuran" value="<?php 
+          <input type="text" class="form-control" name="username_pengukuran" id="username_pengukuran" placeholder="username_pengukuran" value="<?php 
           if(set_value('username_pengukuran')=="" && isset($username)){
               echo $username;
             }else{
               echo  set_value('username_pengukuran');
             }
           ?>">
-          <input type="hidden" class="form-control" name="idlogin_pengukuran" id="idlogin_pengukuran" placeholder="idlogin_pengukuran" value="<?php 
+          <input type="text" class="form-control" name="idlogin_pengukuran" id="idlogin_pengukuran" placeholder="idlogin_pengukuran" value="<?php 
           if(set_value('idlogin_pengukuran')=="" && isset($id_login)){
               echo $id_login;
             }else{
