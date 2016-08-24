@@ -46,41 +46,41 @@
               </div>
 
               <div class="row" style="margin: 5px">
-                <div class="col-md-4" style="padding: 5px">Jenis</div>
+                <div class="col-md-4" style="padding: 5px">
+                  Jenis
+                </div>
                 <div class="col-md-8">
-                  <select  name="berhenti_tipe" type="text" class="form-control">
-                  <option value=''>Pilih Jenis Pemberhentian</option>
-                  <?php foreach($jenis_berhenti as $j) { ?>
-                    <?php
-                      if(set_value('id_berhenti')=="" && isset($id_berhenti)){
-                      $id_berhenti = $berhenti_tipe;
-                      }else{
-                      $id_berhenti = set_value('id_berhenti');
-                      }
-                      $select = $j->id_berhenti == $id_berhenti ? 'selected' : '' ;
-                    ?>
-                    <option value="<?php echo $j->jenis ?>" <?php echo $select ?>><?php echo $j->jenis ?></option>
-                  <?php } ?>
+                  <select  name="berhenti_tipe" type="text" class="form-control" >
+                    <option value=''>-</option>
+                      <?php foreach($jenis_berhenti as $jenis) : ?>
+                        <?php
+                        if(set_value('id_berhenti')=="" && isset($id_berhenti)){
+                          $id_berhenti = $id_berhenti;
+                        }else{
+                          $id_berhenti = set_value('id_berhenti');
+                        }
+
+                        if(set_value('id_berhenti')=="" && isset($id_berhenti)){
+                          $id_berhenti = $id_berhenti;
+                        }else{
+                          $id_berhenti = set_value('id_berhenti');
+                        }
+
+                        $select = $jenis->id_berhenti == $id_berhenti ? 'selected' : '' ;
+                        ?>
+                        <option value="<?php echo $jenis->jenis ?>" <?php echo $select ?>><?php echo $jenis->jenis ?></option>
+                      <?php endforeach ?>
                   </select>
                 </div>
               </div>
 
               <div class="row" style="margin: 5px">
-                <div class="col-md-4" style="padding: 5px">Kategori</div>
+                <div class="col-md-4" style="padding: 5px">
+                  Kategori 
+                </div>
                 <div class="col-md-8">
                   <select  name="id_berhenti" type="text" class="form-control">
-                  <option value=''>Pilih Kategori Pemberhentian</option>
-                  <?php foreach($kategori as $k) { ?>
-                    <?php
-                      if(set_value('id_berhenti')=="" && isset($id_berhenti)){
-                      $id_berhenti = $id_berhenti;
-                      }else{
-                      $id_berhenti = set_value('id_berhenti');
-                      }
-                      $select = $k->id_berhenti == $id_berhenti ? 'selected' : '' ;
-                    ?>
-                    <option value="<?php echo $k->id_berhenti ?>" <?php echo $select ?>><?php echo $k->kategori ?></option>
-                  <?php } ?>
+                    <option value=''>-</option>
                   </select>
                 </div>
               </div>
@@ -147,6 +147,22 @@
   $(function () { 
     tabIndex = 1;
 
+    $("[name='berhenti_tipe']").change(function(){
+    
+      var berhenti_tipe = $(this).val();
+      $.ajax({
+        url  : '<?php echo site_url('kepegawaian/drh_berhenti/set_tipe/'.$id_berhenti) ?>',
+        type : 'POST',
+        data : 'berhenti_tipe=' + berhenti_tipe,
+        success : function(data) {
+          $("[name='id_berhenti']").html(data);
+          $("[name='id_berhenti']").change();
+        }
+      });
+
+      return false;
+    }).change();
+  
     $("[name='sk_tgl']").jqxDateTimeInput({ formatString: 'dd-MM-yyyy', theme: theme, height:30});
     $("[name='tmt']").jqxDateTimeInput({ formatString: 'dd-MM-yyyy', theme: theme, height:30 <?php if($disable!="") echo ",disabled:true"?>});
 

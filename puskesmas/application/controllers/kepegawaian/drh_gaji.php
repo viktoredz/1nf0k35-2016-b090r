@@ -79,7 +79,6 @@ class Drh_gaji extends CI_Controller {
 
 		echo json_encode(array($json));
 	}
-
 	
 	function add($id=0,$tmt=0){
         $this->form_validation->set_rules('tmt', 'TMT', 'trim|required');
@@ -129,17 +128,16 @@ class Drh_gaji extends CI_Controller {
         $this->form_validation->set_rules('sk_pejabat', 'sk_pejabat ', 'trim');
         $this->form_validation->set_rules('masa_krj_bln', 'masa_krj_bln ', 'trim');
         $this->form_validation->set_rules('masa_krj_thn', 'masa_krj_thn ', 'trim');
-		$data['id']				= $id;
-	    $data['action']			= "edit";
-		$data['alert_form']		= '';
-		
+		$data['id']			 = $id;
 		
 		if($this->form_validation->run()== FALSE){
 			$data 						= $this->drh_model->get_data_gaji_edit($id,$tmt);
 			$data['notice']				= validation_errors();
-			$data['tmt']	= $tmt;
+			$data['tmt']				= $tmt;
+			$data['alert_form']  		= '';
+	    	$data['action']		        = "edit";
 			$data['disable']			= "disable";
-			$data['golongan'] 	= $this->drh_model->kode_tabel('mst_peg_golruang');
+			$data['golongan'] 			= $this->drh_model->kode_tabel('mst_peg_golruang');
 			die($this->parser->parse("kepegawaian/drh/form_gaji_form",$data));
 		
 		}elseif($this->drh_model->update_entry_gaji($id,$tmt)){
@@ -150,7 +148,6 @@ class Drh_gaji extends CI_Controller {
 
 		die($this->parser->parse("kepegawaian/drh/form_gaji_form",$data));
 	}
-
 	
 	function delete($id=0,$tmt=0){
 		 $this->authentication->verify('kepegawaian','del');
@@ -161,7 +158,6 @@ class Drh_gaji extends CI_Controller {
 		 	die ("Error");
 		 }
 	}
-
 
 	//CRUD Keluarga - END
 }

@@ -52,7 +52,7 @@ class Drh_model extends CI_Model {
         return $query->result();
     }
 
-    function kategori_pem($jenis=0){
+    function get_kategori_pemberhentian($jenis){
         $this->db->select('*');
         $this->db->from("mst_peg_berhenti");
         $this->db->where('jenis',$jenis);
@@ -516,7 +516,7 @@ class Drh_model extends CI_Model {
 
     function update_entry_berhenti($id,$tmt){
        
-        $data['tmt']                    = $this->input->post('tmt');
+        $data['tmt']                    = date("Y-m-d",strtotime($this->input->post('tmt')));
         $data['id_berhenti']            = $this->input->post('id_berhenti');
         $data['sk_tgl']                 = date("Y-m-d",strtotime($this->input->post('sk_tgl')));
         $data['sk_nomor']               = $this->input->post('sk_nomor');
