@@ -6,13 +6,19 @@ class Drh extends CI_Controller {
 		$this->load->model('kepegawaian/drh_model');
 		$this->load->model('mst/puskesmas_model');
 		$this->load->model('inventory/inv_ruangan_model');
+
+		$this->load->library(array('PHPExcel','PHPExcel/IOFactory'));
+		$this->load->helper('file');
 		
 	}
 
 	function index(){
 		$this->authentication->verify('kepegawaian','edit');
-		$data['title_group'] = "Kepegawaian";
-		$data['title_form'] = "Daftar Riwayat Hidup";
+		$data['title_group']    = "Kepegawaian";
+		$data['title_form']     = "Daftar Riwayat Hidup";
+		$data['jenis_berhenti']	= $this->drh_model->jenis_pemberhentian();
+		$data['jenis']			= array('01'=>'PEGAWAI AKTIF', '02'=>'PEGAWAI NON AKTIF','03'=>'PEGAWAI KESELURUHAN',);
+
 		$kodepuskesmas = $this->session->userdata('puskesmas');
 		if(strlen($kodepuskesmas) == 4){
 			$this->db->like('code','P'.substr($kodepuskesmas, 0,4));
@@ -32,6 +38,15 @@ class Drh extends CI_Controller {
 			}
 		}
 	}
+
+	function filter_jenis_pegawai(){
+		if($_POST) {
+			if($this->input->post('jenis_pegawai') != '') {
+				$this->session->set_userdata('filter_code_cl_phc',$this->input->post('jenis_pegawai'));
+			}
+		}
+	}
+
 	function json(){
 		$this->authentication->verify('kepegawaian','show');
 
@@ -75,7 +90,6 @@ class Drh extends CI_Controller {
 				}else{
 					$this->db->like($field,$value);
 				}
-
 			}
 
 			if(!empty($ord)) {
@@ -164,8 +178,8 @@ class Drh extends CI_Controller {
 				$this->session->set_flashdata('alert_form', 'Save data failed...');
 				redirect(base_url()."kepegawaian/drh/add");
 			}
-
 	}
+
 	function nipterakhir($id=0){
 		$this->db->order_by('tmt','desc');
 		$this->db->where('id_pegawai',$id);
@@ -180,8 +194,8 @@ class Drh extends CI_Controller {
 			echo json_encode($nipterakhir);
 		}
 	}
-	function detail($id=0)
-	{
+	
+	function detail($id=0){
 		$this->authentication->verify('kepegawaian','add');
 
 		$data = $this->drh_model->get_data_row($id); 
@@ -791,5 +805,115 @@ class Drh extends CI_Controller {
 				die("Error|Proses data gagal");
 			}
 		}
+	}
+
+	function import(){
+        $fileName = time().$_FILES['file_excel']['name'];
+
+        $config['upload_path'] = './assets/'; 
+        $config['file_name'] = $fileName;
+        $config['allowed_types'] = 'xls|xlsx';
+        $config['max_size'] = 10000;
+         
+        $this->load->library('upload');
+        $this->upload->initialize($config);
+         
+        if(! $this->upload->do_upload('file_excel') )
+        $this->upload->display_errors();
+             
+        $media = $this->upload->data('file_excel');
+        $inputFileName = './assets/'.$media['file_name'];
+        	
+        //  Read Excel File
+        try {
+                $inputFileType = IOFactory::identify($inputFileName);
+                $objReader = IOFactory::createReader($inputFileType);
+                $objPHPExcel = $objReader->load($inputFileName);
+            } catch(Exception $e) {
+            	$this->session->set_flashdata('alert_fail', 'Silahkan Tentukan File Terlebih Dahulu');
+	    		redirect(base_url()."puskesmas/drh/import");
+                die('Error loading file "'.pathinfo($inputFileName,PATHINFO_BASENAME).'": '.$e->getMessage());
+            }
+
+          	//  Get worksheet dimensions
+            $sheet = $objPHPExcel->getSheet(0);				 // get sheet 1 / active sheet
+            $highestRow    = $sheet->getHighestDataRow();    // max row count
+            $highestColumn = $sheet->getHighestDataColumn(); // max column count
+            
+            for ($row = 2; $row <= $highestRow; $row++){  //  Read a row of data into an array                 
+                $rowData = $sheet->rangeToArray('A' . $row . ':' . $highestColumn . $row,NULL,TRUE,FALSE);
+
+            $tgl_lhr = $rowData[0][7];
+		
+
+                $data = array(
+                    "nip_lama"        => $rowData[0][0],
+                    "nip_baru"        => $rowData[0][1],
+                    "nik" 			  => $rowData[0][2],
+                    "gelar_depan"	  => $rowData[0][3],
+                    "gelar_belakang"  => $rowData[0][4],
+                    "nama" 			  => $rowData[0][5],
+                    "jenis_kelamin"   => $rowData[0][6],
+                    "tgl_lhr"         => date("Y-m-d",strtotime($rowData[0][7])),
+                    "tmp_lahir"       => $rowData[0][8],
+                    "kode_mst_agama"  => $rowData[0][9],
+                    "kedudukan_hukum" => $rowData[0][10],
+                    "alamat"          => $rowData[0][11],
+                    "npwp" 		      => $rowData[0][12],
+                    "npwp_tgl"		  => $rowData[0][13],
+                    "kartu_pegawai"   => $rowData[0][14],
+                    "goldar"		  => $rowData[0][15],
+                    "kode_mst_nikah"  => $rowData[0][16],
+                    "code_cl_phc"     => $rowData[0][17]
+                );
+        			$data['id_pegawai']  = $this->drh_model->getIdPegawai($rowData[0][7]);
+        			// $data['id_pegawai']  = $this->getIdPegawai($tgl_lhr);
+
+ 				
+			    //insert to database
+        	    $insert = $this->db->insert("pegawai",$data);
+            	delete_files($media['file_path']);
+            }
+
+            $jmlRow = $highestRow-1;
+
+		$userDetails = array();  // declare the array
+		$userDetails['highestRow'] = $highestRow ;
+		$string = implode('', $userDetails);
+
+		$this->session->set_flashdata('alert', 'Import data successful');
+		$this->session->set_flashdata('alert', 'Data Keseluruhan Sebanyak '.$jmlRow.' Data');
+
+	    redirect(base_url()."drh/import_add");
+    }
+
+    function import_add(){
+		$this->authentication->verify('eform','add');
+
+        $this->form_validation->set_rules('filename', 'File Excel', 'trim|required');
+        
+
+		if($this->form_validation->run()== FALSE){
+			$data['title_group'] = "eForm - Ketuk Pintu";
+			$data['title_form']="Import Excel KPLDH";
+			$data['action']="import_add";
+			// $data['id_data_keluarga']="";
+   //        	$data['data_provinsi'] = $this->datakeluarga_model->get_provinsi();
+   //        	$data['data_kotakab'] = $this->datakeluarga_model->get_kotakab();
+   //        	$data['data_kecamatan'] = $this->datakeluarga_model->get_kecamatan();
+   //        	$data['data_desa'] = $this->datakeluarga_model->get_desa();
+   //        	$data['data_pos'] = $this->datakeluarga_model->get_pos();
+   //        	$data['data_pkk'] = $this->datakeluarga_model->get_pkk();
+
+			$data['content'] = $this->parser->parse("kepegawaian/drh/import_add",$data,true);
+			$this->template->show($data,"home");
+		}elseif($id = $this->datakeluarga_model->insert_entry()){
+			$this->session->set_flashdata('alert', 'Save data successful...');
+			redirect(base_url().'eform/data_kepala_keluarga/edit/'.$id);
+		}else{
+			$this->session->set_flashdata('alert_form', 'Save data failed...');
+			redirect(base_url()."eform/data_kepala_keluarga/");
+		}
+
 	}
 }

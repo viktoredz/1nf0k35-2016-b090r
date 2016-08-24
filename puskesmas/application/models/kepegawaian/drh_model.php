@@ -1,12 +1,13 @@
 <?php
 class Drh_model extends CI_Model {
 
-    var $tabel    = 'pegawai';
+    var $tabel       = 'pegawai';
     var $t_puskesmas = 'cl_phc';
-    var $t_alamat = 'pegawai_alamat';
-    var $t_diklat = 'pegawai_diklat';
-    var $t_dp3    = 'pegawai_dp3';
-	var $lang	  = '';
+    var $t_alamat    = 'pegawai_alamat';
+    var $t_diklat    = 'pegawai_diklat';
+    var $t_dp3       = 'pegawai_dp3';
+    var $t_berhenti  = 'pegawai_berhenti';
+	var $lang	     = '';
 
     function __construct() {
         parent::__construct();
@@ -27,6 +28,22 @@ class Drh_model extends CI_Model {
         return $data;
     }
 
+    function get_data_berhenti($id=0,$start=0,$limit=999999,$options=array()){
+        $this->db->select("*");
+        $this->db->where('pegawai_berhenti.id_pegawai',$id);
+        $this->db->join('mst_peg_berhenti','pegawai_berhenti.id_berhenti=mst_peg_berhenti.id_berhenti','inner');
+        $this->db->order_by('mst_peg_berhenti.id_berhenti','asc');
+        $query = $this->db->get($this->t_berhenti,$limit,$start);
+        return $query->result();
+    }
+
+    function jenis_pemberhentian(){
+        $this->db->select('*');
+        $this->db->from("mst_peg_berhenti");
+        $query = $this->db->get();
+        return $query->result();
+    }
+
     function get_data($start=0,$limit=999999,$options=array())
     {
         $this->db->select("pegawai.id_pegawai, pangkat.nip_nit, pangkat.tmt, aa,pegawai.*,DATE_FORMAT(FROM_DAYS(DATEDIFF(NOW(),tgl_lhr)), '%Y')+0 AS usia",false);
@@ -35,9 +52,7 @@ class Drh_model extends CI_Model {
 		$this->db->order_by('id_pegawai','asc');
         $query = $this->db->get('pegawai',$limit,$start);
         return $query->result();
-    }
-
-    
+    }  
 
     function get_data_alamat($start=0,$limit=999999,$options=array())
     {
@@ -155,6 +170,7 @@ class Drh_model extends CI_Model {
         $query = $this->db->get();
         return $query->result();
     }
+
     function get_tingkat_pendidikan(){
         $this->db->select('*');
         $this->db->from('mst_peg_tingkatpendidikan');
@@ -236,6 +252,8 @@ class Drh_model extends CI_Model {
     }
 
     function getIdPegawai($tgl_lhr){
+        // print_r($tgl_lhr);
+        // die();
         $tgl = explode("-", $tgl_lhr);
         $id  = substr($this->session->userdata('puskesmas'),0,4).$tgl[2];
 
@@ -464,12 +482,20 @@ class Drh_model extends CI_Model {
             return mysql_error();
         }
     }
+    
     function delete_entry_gaji($id,$tmt)
     {
         $this->db->where('id_pegawai',$id);
         $this->db->where('tmt',$tmt);
 
         return $this->db->delete('pegawai_gaji');
+    }
+
+    function delete_entry_berhenti($id,$tmt){
+        $this->db->where('id_pegawai',$id);
+        $this->db->where('tmt',$tmt);
+
+        return $this->db->delete('pegawai_berhenti');
     }
 
     function get_data_pengahargaan($id=0,$start=0,$limit=999999,$options=array())
@@ -664,6 +690,30 @@ class Drh_model extends CI_Model {
             return mysql_error();
         }
     }
+
+    function insert_entry_berhenti($id){
+        $data['id_pegawai']             = $id;
+        $data['id_berhenti']            = $this->input->post('id_berhenti');
+        $data['tmt']                    = date("Y-m-d",strtotime($this->input->post('tmt')));
+        $data['sk_tgl']                 = date("Y-m-d",strtotime($this->input->post('sk_tgl')));
+        $data['sk_nomor']               = $this->input->post('sk_nomor');
+        $data['sk_pejabat']             = $this->input->post('sk_pejabat');
+        $data['berhenti_tipe']          = $this->input->post('berhenti_tipe');
+        $data['code_cl_phc']            = $this->input->post('code_cl_phc');
+        $this->db->where('id_pegawai',$id);
+        $this->db->where('tmt',date("Y-m-d",strtotime($this->input->post('tmt'))));
+        $query = $this->db->get('pegawai_berhenti');
+        if ($query->num_rows() > 0) {
+            return 'false';
+        }else{
+            if($this->db->insert('pegawai_berhenti', $data)){
+                return 'true'; 
+            }else{
+                return mysql_error();
+            }    
+        }
+    }
+
     function insert_entry_gaji($id){
         $data['id_pegawai']             = $id;
         $data['tmt']                    = date("Y-m-d",strtotime($this->input->post('tmt')));
