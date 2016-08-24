@@ -25,6 +25,7 @@
      
       { name: 'id_pegawai', type: 'string'},
       { name: 'tmt', type: 'date'},
+      { name: 'tmt2', type: 'string'},
       { name: 'jenis', type: 'date'},
       { name: 'kategori', type: 'string'},
       { name: 'edit', type: 'number'},
@@ -72,7 +73,7 @@
         { text: 'Detail', align: 'center', filtertype: 'none', sortable: false, width: '4%', cellsrenderer: function (row) {
             var dataRecord = $("#jqxgridBerhenti").jqxGrid('getrowdata', row);
             if(dataRecord.edit==1){
-            return "<div style='width:100%;padding-top:2px;text-align:center'><a href='javascript:void(0);'><img border=0 src='<?php echo base_url(); ?>media/images/16_edit.gif' onclick='detail (\""+dataRecord.id_pegawai+"\",\""+dataRecord.tmt+"\");'></a></div>";
+            return "<div style='width:100%;padding-top:2px;text-align:center'><a href='javascript:void(0);'><img border=0 src='<?php echo base_url(); ?>media/images/16_edit.gif' onclick='detail (\""+dataRecord.id_pegawai+"\",\""+dataRecord.tmt2+"\");'></a></div>";
           }else{
             return "<div style='width:100%;padding-top:2px;text-align:center'><a href='javascript:void(0);'><a href='javascript:void(0);'><img border=0 src='<?php echo base_url(); ?>media/images/16_view.gif'></a></div>";
           }
@@ -81,7 +82,7 @@
         { text: 'Del', align: 'center', filtertype: 'none', sortable: false, width: '4%', cellsrenderer: function (row) {
             var dataRecord = $("#jqxgridBerhenti").jqxGrid('getrowdata', row);
             if(dataRecord.delete==1){
-            return "<div style='width:100%;padding-top:2px;text-align:center'><a href='javascript:void(0);'><a href='javascript:void(0);'><img border=0 src='<?php echo base_url(); ?>media/images/16_del.gif' onclick='del (\""+dataRecord.id_pegawai+"\",\""+dataRecord.tmt+"\");'></a></div>";
+            return "<div style='width:100%;padding-top:2px;text-align:center'><a href='javascript:void(0);'><a href='javascript:void(0);'><img border=0 src='<?php echo base_url(); ?>media/images/16_del.gif' onclick='del (\""+dataRecord.id_pegawai+"\",\""+dataRecord.tmt2+"\");'></a></div>";
           }else{
             return "<div style='width:100%;padding-top:2px;text-align:center'><a href='javascript:void(0);'><a href='javascript:void(0);'><img border=0 src='<?php echo base_url(); ?>media/images/16_lock.gif'></a></div>";
           }
@@ -126,8 +127,8 @@
       });
       $("#popup_berhenti").jqxWindow({
         theme: theme, resizable: false,
-        width: 600,
-        height: 450,
+        width: 500,
+        height: 420,
         isModal: true, autoOpen: false, modalOpacity: 0.2
       });
       $("#popup_berhenti").jqxWindow('open');

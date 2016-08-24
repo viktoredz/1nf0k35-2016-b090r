@@ -44,30 +44,43 @@
                   ?>" ></div>
                 </div>
               </div>
-             
+
               <div class="row" style="margin: 5px">
-                <div class="col-md-4" style="padding: 5px">
-                  Jenis
-                </div>
+                <div class="col-md-4" style="padding: 5px">Jenis</div>
                 <div class="col-md-8">
-                  <select  name="id_berhenti" type="text" class="form-control" id="id_berhenti">
-                    <option value=''>Pilih Jenis Pemberhentian</option>
-                      <?php 
-                      if (empty($id_berhenti)) {
-                        $id_berhenti  = set_value('id_berhenti');
+                  <select  name="berhenti_tipe" type="text" class="form-control">
+                  <option value=''>Pilih Jenis Pemberhentian</option>
+                  <?php foreach($jenis_berhenti as $j) { ?>
+                    <?php
+                      if(set_value('id_berhenti')=="" && isset($id_berhenti)){
+                      $id_berhenti = $berhenti_tipe;
                       }else{
-                        $id_berhenti = $id_berhenti;
+                      $id_berhenti = set_value('id_berhenti');
                       }
-                      foreach($jenis as $j) : 
-                        $select = $id_berhenti ? 'selected' : '' ;
-                        if($j->id_berhenti=="-"){
-                          $j->id_berhenti = "";
-                        }else{
-                          $j->id_berhenti =  $j->jenis." - ";
-                        }
-                      ?>
-                        <option value="<?php echo $j->id_berhenti ?>"<?php echo $select ?>><?php echo $j->id_berhenti.$j->kategori ?></option>
-                      <?php endforeach ?>
+                      $select = $j->id_berhenti == $id_berhenti ? 'selected' : '' ;
+                    ?>
+                    <option value="<?php echo $j->jenis ?>" <?php echo $select ?>><?php echo $j->jenis ?></option>
+                  <?php } ?>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row" style="margin: 5px">
+                <div class="col-md-4" style="padding: 5px">Kategori</div>
+                <div class="col-md-8">
+                  <select  name="id_berhenti" type="text" class="form-control">
+                  <option value=''>Pilih Kategori Pemberhentian</option>
+                  <?php foreach($kategori as $k) { ?>
+                    <?php
+                      if(set_value('id_berhenti')=="" && isset($id_berhenti)){
+                      $id_berhenti = $id_berhenti;
+                      }else{
+                      $id_berhenti = set_value('id_berhenti');
+                      }
+                      $select = $k->id_berhenti == $id_berhenti ? 'selected' : '' ;
+                    ?>
+                    <option value="<?php echo $k->id_berhenti ?>" <?php echo $select ?>><?php echo $k->kategori ?></option>
+                  <?php } ?>
                   </select>
                 </div>
               </div>
@@ -140,20 +153,15 @@
     $("[name='btn_biodata_berhenti_close']").click(function(){
         $("#popup_berhenti").jqxWindow('close');
     });
-  
+
     $("[name='btn_biodata_berhenti_save']").click(function(){
         var data = new FormData();
         $('#biodata_notice-content').html('<div class="alert">Mohon tunggu, proses simpan data....</div>');
         $('#biodata_notice').show();
 
-
-     a = $("[name='id_berhenti']").val();
-     alert(a);
-
-
         data.append('tmt',                  $("[name='tmt']").val());
         data.append('id_berhenti',          $("[name='id_berhenti']").val());
-        data.append('berhenti_tipe',        $("[name='id_berhenti']").val());
+        data.append('berhenti_tipe',        $("[name='berhenti_tipe']").val());
         data.append('sk_tgl',               $("[name='sk_tgl']").val());
         data.append('sk_pejabat',           $("[name='sk_pejabat']").val());
         data.append('sk_nomor',             $("[name='sk_nomor']").val());

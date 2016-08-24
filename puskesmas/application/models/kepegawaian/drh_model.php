@@ -39,7 +39,23 @@ class Drh_model extends CI_Model {
 
     function jenis_pemberhentian(){
         $this->db->select('*');
+        $this->db->group_by('jenis');
         $this->db->from("mst_peg_berhenti");
+        $query = $this->db->get();
+        return $query->result();
+    }
+
+    function kategori_pemberhentian(){
+        $this->db->select('*');
+        $this->db->from("mst_peg_berhenti");
+        $query = $this->db->get();
+        return $query->result();
+    }
+
+    function kategori_pem($jenis=0){
+        $this->db->select('*');
+        $this->db->from("mst_peg_berhenti");
+        $this->db->where('jenis',$jenis);
         $query = $this->db->get();
         return $query->result();
     }
@@ -452,6 +468,21 @@ class Drh_model extends CI_Model {
         return $data;
     }
 
+    function get_data_berhenti_edit($id,$tmt){
+        $data = array();
+
+        $this->db->select("*");
+        $this->db->where("id_pegawai",$id);
+        $this->db->where("tmt",$tmt);
+        $query = $this->db->get("pegawai_berhenti");
+        if($query->num_rows()>0){
+            $data = $query->row_array();
+        }
+
+        $query->free_result();
+        return $data;
+    }
+
     function get_data_gaji($id=0,$start=0,$limit=999999,$options=array())
     {
         $this->db->select("*,mst_peg_golruang.id_golongan,mst_peg_golruang.ruang",false);
@@ -477,6 +508,24 @@ class Drh_model extends CI_Model {
         $this->db->where('id_pegawai',$id);
         $this->db->where('tmt',$tmt);
         if($this->db->update('pegawai_gaji', $data)){
+            return true; 
+        }else{
+            return mysql_error();
+        }
+    }
+
+    function update_entry_berhenti($id,$tmt){
+       
+        $data['tmt']                    = $this->input->post('tmt');
+        $data['id_berhenti']            = $this->input->post('id_berhenti');
+        $data['sk_tgl']                 = date("Y-m-d",strtotime($this->input->post('sk_tgl')));
+        $data['sk_nomor']               = $this->input->post('sk_nomor');
+        $data['sk_pejabat']             = $this->input->post('sk_pejabat');
+        $data['berhenti_tipe']          = $this->input->post('berhenti_tipe');
+
+        $this->db->where('id_pegawai',$id);
+        $this->db->where('tmt',$tmt);
+        if($this->db->update('pegawai_berhenti', $data)){
             return true; 
         }else{
             return mysql_error();
@@ -692,6 +741,8 @@ class Drh_model extends CI_Model {
     }
 
     function insert_entry_berhenti($id){
+        $kodepuskesmas = $this->session->userdata('puskesmas');
+
         $data['id_pegawai']             = $id;
         $data['id_berhenti']            = $this->input->post('id_berhenti');
         $data['tmt']                    = date("Y-m-d",strtotime($this->input->post('tmt')));
@@ -699,7 +750,8 @@ class Drh_model extends CI_Model {
         $data['sk_nomor']               = $this->input->post('sk_nomor');
         $data['sk_pejabat']             = $this->input->post('sk_pejabat');
         $data['berhenti_tipe']          = $this->input->post('berhenti_tipe');
-        $data['code_cl_phc']            = $this->input->post('code_cl_phc');
+        $data['code_cl_phc']            = 'P'.$kodepuskesmas;
+
         $this->db->where('id_pegawai',$id);
         $this->db->where('tmt',date("Y-m-d",strtotime($this->input->post('tmt'))));
         $query = $this->db->get('pegawai_berhenti');

@@ -38,7 +38,7 @@
 		     	<div class="row">
 			     	<div class="col-md-12">
 			     	    <select name="jenis_pegawai" id="jenis_pegawai" class="form-control">
-                            <?php foreach ($jenis as $val=>$key ) { ;?>
+                            <?php foreach ($jenis_pegawai as $val=>$key ) { ;?>
                             <?php $select = $val ? 'selected=selected' : '' ?>
                                 <option value="<?php echo $val; ?>" <?php echo $select ?>><?php echo $key; ?></option>
                             <?php   } ;?>

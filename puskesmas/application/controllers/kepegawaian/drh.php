@@ -17,7 +17,7 @@ class Drh extends CI_Controller {
 		$data['title_group']    = "Kepegawaian";
 		$data['title_form']     = "Daftar Riwayat Hidup";
 		$data['jenis_berhenti']	= $this->drh_model->jenis_pemberhentian();
-		$data['jenis']			= array('01'=>'PEGAWAI AKTIF', '02'=>'PEGAWAI NON AKTIF','03'=>'PEGAWAI KESELURUHAN',);
+		$data['jenis_pegawai']	= array('01'=>'PEGAWAI AKTIF', '02'=>'PEGAWAI NON AKTIF','03'=>'PEGAWAI KESELURUHAN',);
 
 		$kodepuskesmas = $this->session->userdata('puskesmas');
 		if(strlen($kodepuskesmas) == 4){
@@ -42,7 +42,7 @@ class Drh extends CI_Controller {
 	function filter_jenis_pegawai(){
 		if($_POST) {
 			if($this->input->post('jenis_pegawai') != '') {
-				$this->session->set_userdata('filter_code_cl_phc',$this->input->post('jenis_pegawai'));
+				$this->session->set_userdata('filter_jenis_pegawai',$this->input->post('jenis_pegawai'));
 			}
 		}
 	}
@@ -69,6 +69,19 @@ class Drh extends CI_Controller {
 			if(!empty($ord)) {
 				$this->db->order_by($ord, $this->input->post('sortorder'));
 			}
+		}
+
+		if($this->session->userdata('filter_jenis_pegawai')!=''){
+			if($this->session->userdata('filter_jenis_pegawai')=="PEGAWAI KESELURUHAN"){
+
+			}elseif ($this->session->userdata('filter_jenis_pegawai')=="PEGAWAI AKTIF") {
+				$this->db->where('pegawai.id_pegawai',$this->session->userdata('filter_jenis_pegawai'));
+
+			}else{
+				$this->db->where('pegawai.id_pegawai',$this->session->userdata('filter_jenis_pegawai'));
+			}
+		}else{
+				$this->db->where('pegawai.id_pegawai');
 		}
 
 		if ($this->session->userdata('puskesmas')!='') {
