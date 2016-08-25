@@ -68,7 +68,7 @@
 
                         $select = $jenis->id_berhenti == $id_berhenti ? 'selected' : '' ;
                         ?>
-                        <option value="<?php echo $jenis->jenis ?>" <?php echo $select ?>><?php echo $jenis->jenis ?></option>
+                        <option value="<?php echo $jenis->jenis ?>" <?php echo $select ?>><?php echo ucwords($jenis->jenis)?></option>
                       <?php endforeach ?>
                   </select>
                 </div>
