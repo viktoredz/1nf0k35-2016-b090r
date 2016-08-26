@@ -1,16 +1,17 @@
 <?php
 class Drh_model extends CI_Model {
 
-    var $tabel    = 'pegawai';
+    var $tabel       = 'pegawai';
     var $t_puskesmas = 'cl_phc';
-    var $t_alamat = 'pegawai_alamat';
-    var $t_diklat = 'pegawai_diklat';
-    var $t_dp3    = 'pegawai_dp3';
-	var $lang	  = '';
+    var $t_alamat    = 'pegawai_alamat';
+    var $t_diklat    = 'pegawai_diklat';
+    var $t_dp3       = 'pegawai_dp3';
+    var $t_berhenti  = 'pegawai_berhenti';
+    var $lang        = '';
 
     function __construct() {
         parent::__construct();
-		$this->lang	  = $this->config->item('language');
+        $this->lang   = $this->config->item('language');
     }
 
     public function getItem($id=0,$tmt=0)
@@ -26,73 +27,52 @@ class Drh_model extends CI_Model {
         $query->free_result();    
         return $data;
     }
-    function get_data_gaji_edit($id,$tmt){
-        $data = array();
 
+    function get_data_berhenti($id=0,$start=0,$limit=999999,$options=array()){
         $this->db->select("*");
-        $this->db->where("id_pegawai",$id);
-        $this->db->where("tmt",$tmt);
-        $query = $this->db->get("pegawai_gaji");
-        if($query->num_rows()>0){
-            $data = $query->row_array();
-        }
-
-        $query->free_result();
-        return $data;
-    }
-
-    function get_data_gaji($id=0,$start=0,$limit=999999,$options=array())
-    {
-        $this->db->select("*,mst_peg_golruang.id_golongan,mst_peg_golruang.ruang",false);
-        $this->db->where('pegawai_gaji.id_pegawai',$id);
-        $this->db->order_by('tmt','desc');
-        $this->db->join('mst_peg_golruang','mst_peg_golruang.id=pegawai_gaji.id_mst_peg_golruang');
-        $query = $this->db->get('pegawai_gaji',$limit,$start);
+        $this->db->where('pegawai_berhenti.id_pegawai',$id);
+        $this->db->join('mst_peg_berhenti','pegawai_berhenti.id_berhenti=mst_peg_berhenti.id_berhenti','inner');
+        $this->db->order_by('mst_peg_berhenti.id_berhenti','asc');
+        $query = $this->db->get($this->t_berhenti,$limit,$start);
         return $query->result();
     }
 
-    function update_entry_gaji($id,$tmt){
-        $data['surat_nomor']            = $this->input->post('surat_nomor');
-        $data['id_mst_peg_golruang']    = $this->input->post('id_mst_peg_golruang');
-        $data['gaji_lama']              = $this->input->post('gaji_lama');
-        $data['gaji_lama_pp']           = $this->input->post('gaji_lama_pp');
-        $data['gaji_baru']              = $this->input->post('gaji_baru');
-        $data['gaji_baru_pp']              = $this->input->post('gaji_baru_pp');
-        $data['sk_tgl']                 = date("Y-m-d",strtotime($this->input->post('sk_tgl')));
-        $data['sk_nomor']               = $this->input->post('sk_nomor');
-        $data['sk_pejabat']             = $this->input->post('sk_pejabat');
-        $data['masa_krj_bln']           = $this->input->post('masa_krj_bln');
-        $data['masa_krj_thn']           = $this->input->post('masa_krj_thn');
-        $this->db->where('id_pegawai',$id);
-        $this->db->where('tmt',$tmt);
-        if($this->db->update('pegawai_gaji', $data)){
-            return true; 
-        }else{
-            return mysql_error();
-        }
+    function jenis_pemberhentian(){
+        $this->db->select('*');
+        $this->db->group_by('jenis');
+        $this->db->from("mst_peg_berhenti");
+        $query = $this->db->get();
+        return $query->result();
     }
-    function delete_entry_gaji($id,$tmt)
-    {
-        $this->db->where('id_pegawai',$id);
-        $this->db->where('tmt',$tmt);
 
-        return $this->db->delete('pegawai_gaji');
+    function kategori_pemberhentian(){
+        $this->db->select('*');
+        $this->db->from("mst_peg_berhenti");
+        $query = $this->db->get();
+        return $query->result();
     }
+
+    function get_kategori_pemberhentian($jenis){
+        $this->db->select('*');
+        $this->db->from("mst_peg_berhenti");
+        $this->db->where('jenis',$jenis);
+        $query = $this->db->get();
+        return $query->result();
+    }
+
     function get_data($start=0,$limit=999999,$options=array())
     {
         $this->db->select("pegawai.id_pegawai, pangkat.nip_nit, pangkat.tmt, aa,pegawai.*,DATE_FORMAT(FROM_DAYS(DATEDIFF(NOW(),tgl_lhr)), '%Y')+0 AS usia",false);
         $this->db->join('(SELECT id_pegawai, nip_nit, tmt, CONCAT(tmt, id_pegawai) AS aa FROM pegawai_pangkat WHERE CONCAT(tmt, id_pegawai) IN (SELECT 
                 CONCAT(MAX(tmt), id_pegawai) FROM pegawai_pangkat GROUP BY id_pegawai)) AS pangkat','pangkat.id_pegawai = pegawai.id_pegawai','left');
-		$this->db->order_by('id_pegawai','asc');
+        $this->db->order_by('id_pegawai','asc');
         $query = $this->db->get('pegawai',$limit,$start);
         return $query->result();
-    }
-
-    
+    }  
 
     function get_data_alamat($start=0,$limit=999999,$options=array())
     {
-    	$this->db->select('*');
+        $this->db->select('*');
         $this->db->join('cl_province','pegawai_alamat.code_cl_province=cl_province.code ','value as propinsi','inner');
         $this->db->join('cl_district','pegawai_alamat.code_cl_district=cl_district.code ','value as kota','inner');
         $this->db->join('cl_kec','pegawai_alamat.code_cl_kec=cl_kec.code ','nama as kecamatan','inner');
@@ -121,15 +101,15 @@ class Drh_model extends CI_Model {
 
     function get_data_alamat_id($id,$urut=0)
     {
-		$data = array();
+        $data = array();
         $options = array('id_pegawai'=>$id,'urut' => $urut);
-		$query = $this->db->get_where($this->t_alamat,$options);
-		if ($query->num_rows() > 0){
-			$data = $query->row_array();
-		}
+        $query = $this->db->get_where($this->t_alamat,$options);
+        if ($query->num_rows() > 0){
+            $data = $query->row_array();
+        }
 
-		$query->free_result();    
-		return $data;
+        $query->free_result();    
+        return $data;
     }
     function get_datawhere ($code,$condition,$table){
         $this->db->select("*");
@@ -140,18 +120,18 @@ class Drh_model extends CI_Model {
         }
         return $this->db->get($table)->result();
     }
- 	function get_data_row($id){
-		$data = array();
-		$options = array('id_pegawai' => $id);
+    function get_data_row($id){
+        $data = array();
+        $options = array('id_pegawai' => $id);
         $this->db->select("pegawai.*,DATE_FORMAT(FROM_DAYS(DATEDIFF(NOW(),tgl_lhr)), '%Y')+0 AS usia,(SELECT nip_nit FROM pegawai_pangkat WHERE id_pegawai = pegawai.id_pegawai ORDER BY tmt DESC LIMIT 1) AS nip",false);
-		$query = $this->db->get_where($this->tabel,$options);
-		if ($query->num_rows() > 0){
-			$data = $query->row_array();
-		}
+        $query = $this->db->get_where($this->tabel,$options);
+        if ($query->num_rows() > 0){
+            $data = $query->row_array();
+        }
 
-		$query->free_result();    
-		return $data;
-	}
+        $query->free_result();    
+        return $data;
+    }
     function get_data_row_edit($id='0',$tmt='0'){
         $ttm = explode("-", $tmt);
         $tgl = $ttm[2].'-'.$ttm[1].'-'.$ttm[0];
@@ -206,6 +186,7 @@ class Drh_model extends CI_Model {
         $query = $this->db->get();
         return $query->result();
     }
+
     function get_tingkat_pendidikan(){
         $this->db->select('*');
         $this->db->from('mst_peg_tingkatpendidikan');
@@ -265,28 +246,30 @@ class Drh_model extends CI_Model {
         return $query->result();
     }
 
-	function get_kode_agama($kode_ag=0){
-		$this->db->select('*');
-		$this->db->from('mst_agama');
+    function get_kode_agama($kode_ag=0){
+        $this->db->select('*');
+        $this->db->from('mst_agama');
         $this->db->order_by('value','asc');
-		$query = $this->db->get();
-		return $query->result();
-	}
+        $query = $this->db->get();
+        return $query->result();
+    }
 
-	function get_kode_nikah($kode_nk=0){
-		$this->db->select('*');
-		$this->db->from('mst_peg_nikah');
+    function get_kode_nikah($kode_nk=0){
+        $this->db->select('*');
+        $this->db->from('mst_peg_nikah');
         $this->db->order_by('value','asc');
-		$query = $this->db->get();
-		return $query->result();
-	}
+        $query = $this->db->get();
+        return $query->result();
+    }
 
-	public function getSelectedData($table,$data)
+    public function getSelectedData($table,$data)
     {
         return $this->db->get_where($table, array('id_pegawai'=>$data));
     }
 
     function getIdPegawai($tgl_lhr){
+        // print_r($tgl_lhr);
+        // die();
         $tgl = explode("-", $tgl_lhr);
         $id  = substr($this->session->userdata('puskesmas'),0,4).$tgl[2];
 
@@ -309,10 +292,10 @@ class Drh_model extends CI_Model {
         $data['id_pegawai']     = $this->getIdPegawai($this->input->post('tgl_lhr'));
         $data['nik']            = $this->input->post('nik');
         $data['gelar_depan']    = $this->input->post('gelar_depan');
-    	$data['gelar_belakang']	= $this->input->post('gelar_belakang');
-    	$data['nama']			= $this->input->post('nama');
-    	$data['jenis_kelamin'] 	= $this->input->post('jenis_kelamin');
-    	$data['tgl_lhr']        = date("Y-m-d",strtotime($this->input->post('tgl_lhr')));
+        $data['gelar_belakang'] = $this->input->post('gelar_belakang');
+        $data['nama']           = $this->input->post('nama');
+        $data['jenis_kelamin']  = $this->input->post('jenis_kelamin');
+        $data['tgl_lhr']        = date("Y-m-d",strtotime($this->input->post('tgl_lhr')));
         $data['tmp_lahir']      = $this->input->post('tmp_lahir');
         $data['kode_mst_agama'] = $this->input->post('kode_mst_agama');
         $data['kedudukan_hukum']= $this->input->post('kedudukan_hukum');
@@ -320,15 +303,15 @@ class Drh_model extends CI_Model {
         $data['npwp']           = $this->input->post('npwp');
         $data['npwp_tgl']       = date("Y-m-d",strtotime($this->input->post('npwp_tgl')));
         $data['kartu_pegawai']  = $this->input->post('kartu_pegawai');
-    	$data['goldar']			= $this->input->post('goldar');
+        $data['goldar']         = $this->input->post('goldar');
         $data['kode_mst_nikah'] = $this->input->post('kode_mst_nikah');
         $data['code_cl_phc']    = $this->input->post('codepus');
 
-		if($this->db->insert($this->tabel, $data)){
-			return $data['id_pegawai']; 
-		}else{
-			return mysql_error();
-		}
+        if($this->db->insert($this->tabel, $data)){
+            return $data['id_pegawai']; 
+        }else{
+            return mysql_error();
+        }
     }
 
     function update_entry($id)
@@ -349,11 +332,11 @@ class Drh_model extends CI_Model {
         $data['goldar']         = $this->input->post('goldar');
         $data['kode_mst_nikah'] = $this->input->post('kode_mst_nikah');
 
-		if($this->db->update($this->tabel, $data, array("id_pegawai"=>$id))){
-			return true;
-		}else{
-			return mysql_error();
-		}
+        if($this->db->update($this->tabel, $data, array("id_pegawai"=>$id))){
+            return true;
+        }else{
+            return mysql_error();
+        }
     }
 
     
@@ -371,32 +354,36 @@ class Drh_model extends CI_Model {
 
         return $this->db->delete('pegawai_penghargaan');
     }
-	function delete_entry($id)
-	{
+
+    function getusernamedelete($id){
+        $this->db->where('id_pegawai',$id);
+        $query = $this->db->get('app_users_list');
+        if ($query->num_rows() > 0) {
+            $data = $query->row_array();
+        }else{
+            $data = 0;
+        }
+        $query->free_result();
+        return $data;
+    }
+    function deleteall($id){
         $this->db->where('id_pegawai',$id);
         $this->db->delete('pegawai_diklat');
 
         $this->db->where('id_pegawai',$id);
         $this->db->delete('pegawai_dp3');
 
-
         $this->db->where('id_pegawai',$id);
         $this->db->delete('pegawai_jabatan');
 
-        $this->db->where('id_pegawai',$id);
-        $this->db->delete('pegawai_pangkat');
-
-        $this->db->where('id_pegawai',$id);
-        $this->db->delete('pegawai_pendidikan');
-
-        $this->db->where('id_pegawai',$id);
-        $this->db->delete('pegawai_penghargaan');
-        
         $this->db->where('id_pegawai',$id);
         $this->db->delete('pegawai_keluarga');
 
         $this->db->where('id_pegawai',$id);
         $this->db->delete('pegawai_pangkat');
+
+        $this->db->where('id_pegawai',$id);
+        $this->db->delete('pegawai_penghargaan');
 
         $this->db->where('id_pegawai',$id);
         $this->db->delete('pegawai_skp');
@@ -407,9 +394,29 @@ class Drh_model extends CI_Model {
         $this->db->where('id_pegawai',$id);
         $this->db->delete('pegawai_struktur');
 
-		$this->db->where('id_pegawai',$id);
-		return $this->db->delete($this->tabel);
-	}
+        $this->db->where('id_pegawai',$id);
+        $this->db->delete('pegawai_pendidikan');
+
+        $this->db->where('id_pegawai',$id);
+        return $this->db->delete($this->tabel);
+    }
+    function delete_entry($id)
+    {
+        $username = $this->getusernamedelete($id);
+
+        if ($username !=0) {
+            $this->db->where('code',$username['code']);
+            $this->db->where('username',$username['username']);
+            $this->db->delete('app_users_profile');
+
+            $this->db->where('id_pegawai',$id);
+            $this->db->delete('app_users_list');
+            $this->deleteall($id);
+        }else{
+            $this->deleteall($id);    
+        }
+        
+    }
 
     function delete_entry_ortu($id,$urut)
     {
@@ -445,6 +452,101 @@ class Drh_model extends CI_Model {
         $query = $this->db->get('pegawai_keluarga',$limit,$start);
         return $query->result();
     }
+
+    function get_data_gaji_edit($id,$tmt){
+        $data = array();
+
+        $this->db->select("*");
+        $this->db->where("id_pegawai",$id);
+        $this->db->where("tmt",$tmt);
+        $query = $this->db->get("pegawai_gaji");
+        if($query->num_rows()>0){
+            $data = $query->row_array();
+        }
+
+        $query->free_result();
+        return $data;
+    }
+
+    function get_data_berhenti_edit($id,$tmt){
+        $data = array();
+
+        $this->db->select("*");
+        $this->db->where("id_pegawai",$id);
+        $this->db->where("tmt",$tmt);
+        $query = $this->db->get("pegawai_berhenti");
+        if($query->num_rows()>0){
+            $data = $query->row_array();
+        }
+
+        $query->free_result();
+        return $data;
+    }
+
+    function get_data_gaji($id=0,$start=0,$limit=999999,$options=array())
+    {
+        $this->db->select("*,mst_peg_golruang.id_golongan,mst_peg_golruang.ruang",false);
+        $this->db->where('pegawai_gaji.id_pegawai',$id);
+        $this->db->order_by('tmt','desc');
+        $this->db->join('mst_peg_golruang','mst_peg_golruang.id=pegawai_gaji.id_mst_peg_golruang');
+        $query = $this->db->get('pegawai_gaji',$limit,$start);
+        return $query->result();
+    }
+
+    function update_entry_gaji($id,$tmt){
+        $data['surat_nomor']            = $this->input->post('surat_nomor');
+        $data['id_mst_peg_golruang']    = $this->input->post('id_mst_peg_golruang');
+        $data['gaji_lama']              = $this->input->post('gaji_lama');
+        $data['gaji_lama_pp']           = $this->input->post('gaji_lama_pp');
+        $data['gaji_baru']              = $this->input->post('gaji_baru');
+        $data['gaji_baru_pp']              = $this->input->post('gaji_baru_pp');
+        $data['sk_tgl']                 = date("Y-m-d",strtotime($this->input->post('sk_tgl')));
+        $data['sk_nomor']               = $this->input->post('sk_nomor');
+        $data['sk_pejabat']             = $this->input->post('sk_pejabat');
+        $data['masa_krj_bln']           = $this->input->post('masa_krj_bln');
+        $data['masa_krj_thn']           = $this->input->post('masa_krj_thn');
+        $this->db->where('id_pegawai',$id);
+        $this->db->where('tmt',$tmt);
+        if($this->db->update('pegawai_gaji', $data)){
+            return true; 
+        }else{
+            return mysql_error();
+        }
+    }
+
+    function update_entry_berhenti($id,$tmt){
+       
+        $data['tmt']                    = date("Y-m-d",strtotime($this->input->post('tmt')));
+        $data['id_berhenti']            = $this->input->post('id_berhenti');
+        $data['sk_tgl']                 = date("Y-m-d",strtotime($this->input->post('sk_tgl')));
+        $data['sk_nomor']               = $this->input->post('sk_nomor');
+        $data['sk_pejabat']             = $this->input->post('sk_pejabat');
+        $data['berhenti_tipe']          = $this->input->post('berhenti_tipe');
+
+        $this->db->where('id_pegawai',$id);
+        $this->db->where('tmt',$tmt);
+        if($this->db->update('pegawai_berhenti', $data)){
+            return true; 
+        }else{
+            return mysql_error();
+        }
+    }
+    
+    function delete_entry_gaji($id,$tmt)
+    {
+        $this->db->where('id_pegawai',$id);
+        $this->db->where('tmt',$tmt);
+
+        return $this->db->delete('pegawai_gaji');
+    }
+
+    function delete_entry_berhenti($id,$tmt){
+        $this->db->where('id_pegawai',$id);
+        $this->db->where('tmt',$tmt);
+
+        return $this->db->delete('pegawai_berhenti');
+    }
+
     function get_data_pengahargaan($id=0,$start=0,$limit=999999,$options=array())
     {
         $this->db->select("*,mst_peg_penghargaan.nama_penghargaan",false);
@@ -637,6 +739,61 @@ class Drh_model extends CI_Model {
             return mysql_error();
         }
     }
+
+    function insert_entry_berhenti($id){
+        $kodepuskesmas = $this->session->userdata('puskesmas');
+
+        $data['id_pegawai']             = $id;
+        $data['id_berhenti']            = $this->input->post('id_berhenti');
+        $data['tmt']                    = date("Y-m-d",strtotime($this->input->post('tmt')));
+        $data['sk_tgl']                 = date("Y-m-d",strtotime($this->input->post('sk_tgl')));
+        $data['sk_nomor']               = $this->input->post('sk_nomor');
+        $data['sk_pejabat']             = $this->input->post('sk_pejabat');
+        $data['berhenti_tipe']          = $this->input->post('berhenti_tipe');
+        $data['code_cl_phc']            = 'P'.$kodepuskesmas;
+
+        $this->db->where('id_pegawai',$id);
+        $this->db->where('tmt',date("Y-m-d",strtotime($this->input->post('tmt'))));
+        $query = $this->db->get('pegawai_berhenti');
+        if ($query->num_rows() > 0) {
+            return 'false';
+        }else{
+            if($this->db->insert('pegawai_berhenti', $data)){
+                return 'true'; 
+            }else{
+                return mysql_error();
+            }    
+        }
+    }
+
+    function insert_entry_gaji($id){
+        $data['id_pegawai']             = $id;
+        $data['tmt']                    = date("Y-m-d",strtotime($this->input->post('tmt')));
+        $data['surat_nomor']            = $this->input->post('surat_nomor');
+        $data['id_mst_peg_golruang']    = $this->input->post('id_mst_peg_golruang');
+        $data['gaji_lama']              = $this->input->post('gaji_lama');
+        $data['gaji_lama_pp']           = $this->input->post('gaji_lama_pp');
+        $data['gaji_baru']              = $this->input->post('gaji_baru');
+        $data['gaji_baru_pp']              = $this->input->post('gaji_baru_pp');
+        $data['sk_tgl']                 = date("Y-m-d",strtotime($this->input->post('sk_tgl')));
+        $data['sk_nomor']               = $this->input->post('sk_nomor');
+        $data['sk_pejabat']             = $this->input->post('sk_pejabat');
+        $data['masa_krj_bln']           = $this->input->post('masa_krj_bln');
+        $data['masa_krj_thn']           = $this->input->post('masa_krj_thn');
+        $this->db->where('id_pegawai',$id);
+        $this->db->where('tmt',date("Y-m-d",strtotime($this->input->post('tmt'))));
+        $query = $this->db->get('pegawai_gaji');
+        if ($query->num_rows() > 0) {
+            return 'false';
+        }else{
+            if($this->db->insert('pegawai_gaji', $data)){
+                return 'true'; 
+            }else{
+                return mysql_error();
+            }    
+        }
+    }
+
     function insert_entry_anak($id)
     {
         $data['id_pegawai']                   = $id;
@@ -864,6 +1021,7 @@ class Drh_model extends CI_Model {
     }
     function get_data_pendidikan_formal($id,$start=0,$limit=999999,$options=array())
     {
+        $this->db->where('id_pegawai',$id);
         $this->db->select("pegawai_pendidikan.*,IF(pegawai_pendidikan.status_pendidikan_cpns=1,'Ya','Tidak') as cpns,mst_peg_jurusan.nama_jurusan,mst_peg_tingkatpendidikan.deskripsi",false);
         $this->db->order_by('ijazah_tgl','asc');
         $this->db->join('mst_peg_jurusan','mst_peg_jurusan.id_jurusan=pegawai_pendidikan.id_mst_peg_jurusan');
@@ -1029,6 +1187,43 @@ class Drh_model extends CI_Model {
         }
     }
     
+    function insert_entry_pendidikan_formal($id)
+    {
+        $data['id_pegawai']                 = $id;
+        $data['id_mst_peg_jurusan']         = $this->input->post('id_jurusan');
+        $data['sekolah_nama']               = $this->input->post('sekolah_nama');
+        $data['ijazah_tgl']                 = date("Y-m-d",strtotime($this->input->post('ijazah_tgl')));
+        $data['sekolah_lokasi']             = $this->input->post('sekolah_lokasi');
+        $data['ijazah_no']                  = $this->input->post('ijazah_no');
+        $data['gelar_depan']                = $this->input->post('gelar_depan');
+        $data['gelar_belakang']             = $this->input->post('gelar_belakang');
+        $data['status_pendidikan_cpns']     = $this->input->post('status_pendidikan_cpns');
+
+       
+        if($this->db->insert('pegawai_pendidikan', $data)){
+            return true; 
+        }else{
+            return mysql_error();
+        }
+    }
+    function update_entry_pendidikan_formal($id=0,$id_mst_peg_jurusan=0)
+    {
+        $data['sekolah_nama']               = $this->input->post('sekolah_nama');
+        $data['ijazah_tgl']                 = date("Y-m-d",strtotime($this->input->post('ijazah_tgl')));
+        $data['sekolah_lokasi']             = $this->input->post('sekolah_lokasi');
+        $data['ijazah_no']                  = $this->input->post('ijazah_no');
+        $data['gelar_depan']                = $this->input->post('gelar_depan');
+        $data['gelar_belakang']             = $this->input->post('gelar_belakang');
+        $data['status_pendidikan_cpns']     = $this->input->post('status_pendidikan_cpns');
+
+       $this->db->where('id_pegawai',$id);
+       $this->db->where('id_mst_peg_jurusan',$id_mst_peg_jurusan);
+        if($this->db->update('pegawai_pendidikan', $data)){
+            return true; 
+        }else{
+            return mysql_error();
+        }
+    }
     function get_data_pendidikan_struktural($id,$start=0,$limit=999999,$options=array())
     {
         $this->db->select("pegawai_diklat.*,mst_peg_diklat.nama_diklat as jenis_diklat,mst_peg_diklat.jenis",false);

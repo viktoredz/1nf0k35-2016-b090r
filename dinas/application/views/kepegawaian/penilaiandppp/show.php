@@ -23,8 +23,8 @@
       	<div class="box-footer">
 		      <div class="col-md-5">
 		      	<!-- <button type="button" class="btn btn-primary" id="btn-add"><i class='glyphicon glyphicon-plus'></i> &nbsp; Tambah</button> -->
-			 	<button type="button" class="btn btn-warning" id="btn-refresh"><i class='fa fa-refresh'></i> &nbsp; Refresh</button>
-			 	<!-- <button type="button" class="btn btn-success" id="btn-export"><i class='fa fa-file-excel-o'></i> &nbsp; Export</button> -->
+			 	<button type="button" class="btn btn-warning" id="btn-refresh"><i class='fa fa-refresh'></i> &nbsp; Refres</button>
+			 	<!-- <button type="button" class="btn btn-success" id="btn-export"><i class='fa fa-file-excel-o'></i> &nbsph; Export</button> -->
 		     </div>
 		     <div class="col-md-3">
 		     	<div class="row">
